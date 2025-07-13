@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Вход / Регистрация</title>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXX');
+  </script>
   <style>
     * {
       box-sizing: border-box;
@@ -19,13 +27,11 @@
       height: 100vh;
       margin: 0;
     }
-
     @keyframes bgShift {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-
     .container {
       background: rgba(0,0,0,0.6);
       padding: 30px 40px;
@@ -34,25 +40,21 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
       animation: fadeIn 1s ease-in;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     h2 {
       text-align: center;
       color: #ffffff;
       margin-bottom: 20px;
     }
-
     label {
       display: block;
       margin-top: 15px;
       font-weight: bold;
       color: #e0ffe8;
     }
-
     input[type=text], input[type=password] {
       width: 100%;
       padding: 10px;
@@ -62,12 +64,10 @@
       transition: 0.3s ease;
       margin-top: 6px;
     }
-
     input:focus {
       border-color: #3fffa3;
       box-shadow: 0 0 6px #3fffa3;
     }
-
     button {
       width: 100%;
       margin-top: 25px;
@@ -81,12 +81,10 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
     button:hover {
       background: #0ea25d;
       transform: scale(1.03);
     }
-
     .toggle-link {
       margin-top: 18px;
       text-align: center;
@@ -94,7 +92,6 @@
       color: #8de8b3;
       user-select: none;
     }
-
     .message {
       margin-top: 10px;
       text-align: center;
@@ -106,7 +103,6 @@
 <body>
   <div class="container">
     <h2 id="formTitle">Вход</h2>
-
     <!-- Вход -->
     <form id="loginForm">
       <label for="loginUsername">Никнейм</label>
@@ -116,7 +112,6 @@
       <button type="submit">Войти</button>
       <div class="message" id="loginMessage"></div>
     </form>
-
     <!-- Регистрация -->
     <form id="registerForm" style="display:none;">
       <label for="registerUsername">Никнейм</label>
@@ -130,94 +125,8 @@
       <button type="submit">Зарегистрироваться</button>
       <div class="message" id="registerMessage"></div>
     </form>
-
     <div class="toggle-link" id="toggleForms">Нет аккаунта? Зарегистрироваться</div>
   </div>
-
-<script>
-  const loginForm = document.getElementById('loginForm');
-  const registerForm = document.getElementById('registerForm');
-  const toggleForms = document.getElementById('toggleForms');
-  const formTitle = document.getElementById('formTitle');
-  const loginMessage = document.getElementById('loginMessage');
-  const registerMessage = document.getElementById('registerMessage');
-
-  const validCodes = ['gta5rp2025', 'admin_gta5rp2025'];
-
-  toggleForms.onclick = () => {
-    if (loginForm.style.display !== 'none') {
-      loginForm.style.display = 'none';
-      registerForm.style.display = 'block';
-      formTitle.textContent = 'Регистрация';
-      toggleForms.textContent = 'Есть аккаунт? Войти';
-      loginMessage.textContent = '';
-      registerMessage.textContent = '';
-    } else {
-      loginForm.style.display = 'block';
-      registerForm.style.display = 'none';
-      formTitle.textContent = 'Вход';
-      toggleForms.textContent = 'Нет аккаунта? Зарегистрироваться';
-      loginMessage.textContent = '';
-      registerMessage.textContent = '';
-    }
-  };
-
-  registerForm.onsubmit = e => {
-    e.preventDefault();
-
-    const username = document.getElementById('registerUsername').value.trim();
-    const password = document.getElementById('registerPassword').value.trim();
-    const discord = document.getElementById('registerDiscord').value.trim();
-    const code = document.getElementById('registerCode').value.trim();
-
-    if (!validCodes.includes(code)) {
-      registerMessage.textContent = 'Неверный регистрационный код';
-      return;
-    }
-    if (localStorage.getItem('user_' + username)) {
-      registerMessage.textContent = 'Пользователь с таким никнеймом уже существует';
-      return;
-    }
-
-    const userData = { password, discord, code };
-    localStorage.setItem('user_' + username, JSON.stringify(userData));
-
-    registerMessage.style.color = '#8de8b3';
-    registerMessage.textContent = 'Регистрация прошла успешно! Теперь войдите.';
-
-    setTimeout(() => {
-      registerForm.reset();
-      toggleForms.click();
-      registerMessage.textContent = '';
-    }, 1500);
-  };
-
-  loginForm.onsubmit = e => {
-    e.preventDefault();
-
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-
-    const userStr = localStorage.getItem('user_' + username);
-    if (!userStr) {
-      loginMessage.textContent = 'Пользователь не найден';
-      return;
-    }
-
-    const userData = JSON.parse(userStr);
-    if (password !== userData.password) {
-      loginMessage.textContent = 'Неверный пароль';
-      return;
-    }
-
-    loginMessage.style.color = '#8de8b3';
-    loginMessage.textContent = `Вход выполнен! Перенаправление...`;
-
-    // Переход на dashboard.html
-    setTimeout(() => {
-      window.location.href = 'dashboard.html';
-    }, 1000);
-  };
-</script>
+  <script src="scripts.js"></script>
 </body>
 </html>

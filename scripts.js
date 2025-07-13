@@ -12,12 +12,12 @@ function showTaskForm() {
     return;
   }
   if (currentUser.activeTask && !canTakeNewTask(currentUser)) {
-    alert('Вы не можете взять новое задание, пока не завершите текущее или не истечёт таймер!');
+    alert('Вы не можете взять новое задание, пока не истечёт таймер!');
     return;
   }
   document.getElementById('taskForm')?.classList.remove('hidden');
-  document.getElementById('nickname').value = currentUser.nickname;
-  document.getElementById('discord').value = currentUser.discord;
+  document.getElementById('nickname').value = currentUser.nickname || 'Ошибка ника';
+  document.getElementById('discord').value = currentUser.discord || '';
 }
 function closeTaskForm() {
   document.getElementById('taskForm')?.classList.add('hidden');
@@ -172,7 +172,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('user_' + username, JSON.stringify(userData));
 
-  const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
   const embed = {
     embeds: [{
       title: 'Новый игрок зарегистрирован',
@@ -299,7 +299,6 @@ async function submitReport() {
   const points = currentUser.taskPoints;
   const proof = document.getElementById('reportProof').value.trim();
 
-  // Обновлённое регулярное выражение
   const urlPattern = /^(https?:\/\/(?:i\.imgur\.com|cdn\.discordapp\.com|media\.discordapp\.net)\/[\w\-\/]+\.(png|jpg|jpeg|mp4))$/i;
   if (!proof || !urlPattern.test(proof)) {
     console.log('Введённая ссылка:', proof);
@@ -321,16 +320,16 @@ async function submitReport() {
   reports.push(report);
   localStorage.setItem('reports', JSON.stringify(reports));
 
-  const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
   const embed = {
     embeds: [{
       title: 'Новый отчёт от игрока',
       fields: [
-        { name: 'Никнейм', value: nickname },
-        { name: 'Discord', value: discord },
+        { name: 'Никнейм', value: nickname || 'Не указан' },
+        { name: 'Discord', value: discord || 'Не указан' },
         { name: 'Задание', value: task },
         { name: 'Очки', value: points.toString() },
-        { name: 'Доказательство', value: proof }
+        { name: 'Скриншот', value: proof }
       ],
       color: 65384,
       timestamp: new Date().toISOString()
@@ -355,6 +354,10 @@ async function submitReport() {
     players.push(player);
     localStorage.setItem('players', JSON.stringify(players));
   }
+  player.activeTask = null;
+  player.taskStartTime = null;
+  player.taskId = null;
+  player.taskPoints = 0;
   player.lastReportTime = new Date().toISOString();
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
@@ -366,8 +369,9 @@ async function submitReport() {
     proof_url: proof
   });
 
-  alert('Отчёт отправлен на проверку!');
+  alert('Отчёт отправлен на проверку! Очки будут начислены после подтверждения админом.');
   document.getElementById('reportProof').value = '';
+  updateTaskTimer();
   updateNextTaskTimer();
   updateAdminPanel();
 }
@@ -390,7 +394,7 @@ const cases = [
 async function openCase(casePoints) {
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
   if (!currentUser) return;
-  if (currentUser.points < casePoints) {
+  if ((currentUser.points || 0) < casePoints) {
     alert('Недостаточно очков для открытия кейса!');
     return;
   }
@@ -455,12 +459,12 @@ async function openCase(casePoints) {
     prize: prize
   });
 
-  const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
   const embed = {
     embeds: [{
       title: 'Кейс открыт!',
       fields: [
-        { name: 'Никнейм', value: currentUser.nickname },
+        { name: 'Никнейм', value: currentUser.nickname || 'Не указан' },
         { name: 'Кейс', value: caseData.name },
         { name: 'Очки', value: casePoints.toString() },
         { name: 'Приз', value: prize }
@@ -495,7 +499,7 @@ function updateCasesModal() {
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
   if (!currentUser) return;
 
-  const currentPoints = currentUser.points || 0; // Исправление: 0 вместо undefined
+  const currentPoints = currentUser.points || 0;
   document.getElementById('currentPoints').textContent = `Ваши очки: ${currentPoints}`;
 
   const casesList = document.getElementById('casesList');
@@ -545,7 +549,7 @@ function updateAdminPanel() {
   reports.forEach(report => {
     reportsTable.innerHTML += `
       <tr>
-        <td class="p-2">${report.nickname}</td>
+        <td class="p-2">${report.nickname || 'Не указан'}</td>
         <td class="p-2">${report.task}</td>
         <td class="p-2"><a href="${report.proof}" target="_blank">Ссылка</a></td>
         <td class="p-2">
@@ -562,7 +566,7 @@ function updateAdminPanel() {
   players.forEach(player => {
     playersTable.innerHTML += `
       <tr>
-        <td class="p-2">${player.nickname}</td>
+        <td class="p-2">${player.nickname || 'Не указан'}</td>
         <td class="p-2">${player.points || 0}</td>
         <td class="p-2">
           <input type="number" id="points_${player.nickname}" placeholder="Новое кол-во очков" class="p-1 bg-gray-700 rounded">
@@ -606,7 +610,33 @@ async function approveReport(reportId, points, nickname) {
   });
 
   await checkCasesAndPrize(nickname, player.points, points);
-  alert('Отчёт подтверждён!');
+  alert('Отчёт подтверждён! Начислено ' + points + ' очков.');
+
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
+  const embed = {
+    embeds: [{
+      title: 'Отчёт подтверждён',
+      fields: [
+        { name: 'Никнейм', value: nickname || 'Не указан' },
+        { name: 'Задание', value: player.task || 'Не указано' },
+        { name: 'Очки', value: points.toString() },
+        { name: 'Всего очков', value: player.points.toString() }
+      ],
+      color: 3447003,
+      timestamp: new Date().toISOString()
+    }]
+  };
+
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(embed)
+    });
+  } catch (error) {
+    console.error('Ошибка отправки в Discord:', error);
+  }
+
   updateAdminPanel();
   updateLeaderboard();
   updateTaskTimer();
@@ -616,11 +646,37 @@ async function approveReport(reportId, points, nickname) {
 // Отклонение отчёта
 function rejectReport(reportId) {
   let reports = JSON.parse(localStorage.getItem('reports')) || [];
+  const report = reports.find(r => r.id === reportId);
   reports = reports.filter(r => r.id !== reportId);
   localStorage.setItem('reports', JSON.stringify(reports));
 
   trackEvent('reject_report', { report_id: reportId });
   alert('Отчёт отклонён!');
+
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
+  const embed = {
+    embeds: [{
+      title: 'Отчёт отклонён',
+      fields: [
+        { name: 'Никнейм', value: report.nickname || 'Не указан' },
+        { name: 'Задание', value: report.task || 'Не указано' },
+        { name: 'Скриншот', value: report.proof || 'Не указан' }
+      ],
+      color: 16711680,
+      timestamp: new Date().toISOString()
+    }]
+  };
+
+  try {
+    fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(embed)
+    });
+  } catch (error) {
+    console.error('Ошибка отправки в Discord:', error);
+  }
+
   updateAdminPanel();
 }
 
@@ -675,12 +731,12 @@ async function awardExtraPoints() {
   localStorage.setItem('currentUser', JSON.stringify(player));
   localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
-  const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
   const embed = {
     embeds: [{
       title: 'Дополнительные очки начислены',
       fields: [
-        { name: 'Никнейм', value: nickname },
+        { name: 'Никнейм', value: nickname || 'Не указан' },
         { name: 'Тип', value: typeName },
         { name: 'Очки', value: points.toString() },
         { name: 'Всего очков', value: player.points.toString() }
@@ -746,13 +802,13 @@ async function checkCasesAndPrize(nickname, points, addedPoints) {
   localStorage.setItem('currentUser', JSON.stringify(player));
   localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
-  const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
+  const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
   if (addedPoints > 0 || newlyOpenedCases.length > 0) {
     const embed = {
       embeds: [{
         title: 'Очки начислены!',
         fields: [
-          { name: 'Никнейм', value: nickname },
+          { name: 'Никнейм', value: nickname || 'Не указан' },
           { name: 'Начислено очков', value: addedPoints.toString() },
           { name: 'Всего очков', value: points.toString() },
           ...(newlyOpenedCases.length > 0 ? [{
@@ -817,7 +873,7 @@ function updateLeaderboard() {
     const status = player.mainPrize ? `Победитель: ${player.mainPrize}` : (player.points || 0) >= 150000 ? 'Победитель' : 'Активен';
     leaderboard.innerHTML += `
       <tr>
-        <td class="p-2">${player.nickname}</td>
+        <td class="p-2">${player.nickname || 'Не указан'}</td>
         <td class="p-2">${player.points || 0}</td>
         <td class="p-2">${player.tasksCompleted || 0}</td>
         <td class="p-2">${status}</td>

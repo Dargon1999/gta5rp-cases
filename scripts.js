@@ -1,4 +1,5 @@
 // Google Analytics Event Tracking
+console.log('scripts.js loaded');
 function trackEvent(eventName, parameters = {}) {
   gtag('event', eventName, parameters);
 }
@@ -168,7 +169,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
   const code = document.getElementById('registerCode').value.trim();
   const registerMessage = document.getElementById('registerMessage');
 
-  console.log('Регистрация:', { username, discord, code }); // Отладка
+  console.log('Регистрация:', { username, discord, code });
 
   const validCodes = ['gta5rp2025', 'admin_gta5rp2025'];
   if (!validCodes.includes(code)) {
@@ -251,7 +252,7 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
   const password = document.getElementById('loginPassword').value.trim();
   const loginMessage = document.getElementById('loginMessage');
 
-  console.log('Вход:', { username }); // Отладка
+  console.log('Вход:', { username });
 
   const userStr = localStorage.getItem('user_' + username);
   if (!userStr) {
@@ -502,7 +503,7 @@ async function openCase(casePoints) {
       <p class="text-sm text-gray-400">Содержимое: ${caseData.contents.join(', ')}</p>
       <p class="text-green-400 font-bold">Приз: ${prize}</p>
     `;
-    alert(`Вы открыли ${caseData.name} и получили: ${prize}!`);
+    alert(`Вы открыли ${caseData.name}! Приз: ${prize}`);
   }, 3000);
 
   trackEvent('open_case', {
@@ -668,7 +669,6 @@ async function addTask() {
     points: taskPoints
   };
   tasks.push(newTask);
-  // Нельзя напрямую записать в tasks.json на GitHub Pages, сохраняем в localStorage
   localStorage.setItem('tasks', JSON.stringify(tasks));
 
   const webhookUrl = 'https://discord.com/api/webhooks/1393915689617588294/vTZ5qjX1sHQnkzXz3kdi2uOVF3-89TfmG1H92vrUzGfgLglmHwV2eJ81NlHVkVWbQYb_';
@@ -1076,6 +1076,8 @@ function updateLeaderboard() {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('dashboard.html loaded, pathname:', window.location.pathname);
+  console.log('styles.css path:', '/gta5rp-cases/styles.css');
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
   if (currentUser && window.location.pathname.includes('dashboard.html')) {
     console.log('Инициализация dashboard, текущий пользователь:', currentUser);
@@ -1092,7 +1094,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentUser.isAdmin) {
       console.log('Пользователь является админом, отображаем админ-панель');
       document.getElementById('adminPanelButton')?.classList.remove('hidden');
-      document.getElementById('adminPanel')?.classList.remove('hidden');
+    } else {
+      document.getElementById('adminPanel')?.classList.add('hidden');
+      document.getElementById('adminPanelButton')?.classList.add('hidden');
     }
     updateTaskTimer();
     updateNextTaskTimer();

@@ -1,0 +1,160 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #121212;
+  color: #eee;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: #1f1f1f;
+  padding: 10px;
+  text-align: center;
+}
+
+header nav button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  background: #333;
+  border: none;
+  color: #eee;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+header nav button:hover {
+  background: #555;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 320px;
+  background: #222;
+  padding: 20px;
+  border-radius: 8px;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  box-shadow: 0 0 15px #000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.close-btn {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #eee;
+  cursor: pointer;
+}
+
+form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+form input {
+  width: 100%;
+  padding: 8px;
+  background: #333;
+  border: 1px solid #555;
+  color: #eee;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+form button {
+  width: 100%;
+  padding: 10px;
+  background: #4caf50;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.form-message {
+  margin-top: 10px;
+  min-height: 18px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right:0;
+  bottom:0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+main {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+main h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.main-menu {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.main-menu button {
+  padding: 10px 15px;
+  background: #333;
+  border: none;
+  color: #eee;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.main-menu button:hover {
+  background: #555;
+}
+
+section {
+  background: #222;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+#rating-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#rating-table th, #rating-table td {
+  border: 1px solid #444;
+  padding: 8px;
+  text-align: center;
+}
+
+#rating-table th {
+  background: #333;
+}
+
+#rating-table tr:nth-child(even) {
+  background: #1f1f1f;
+}

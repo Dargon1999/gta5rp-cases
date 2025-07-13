@@ -109,7 +109,7 @@ async function loadTasks() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const path = isLocal ? '/tasks.json' : '/gta5rp-cases/tasks.json';
     console.log('Попытка загрузки tasks.json по пути:', path);
-    const response = await fetch(path);
+    const response = await fetch(path, { cache: 'no-store' });
     if (!response.ok) {
       console.error('Ошибка HTTP:', response.status, response.statusText);
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -131,7 +131,7 @@ function logout() {
   trackEvent('logout', {});
 }
 
-// Регистрация и вход (из index.html)
+// Регистрация
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = document.getElementById('registerUsername').value.trim();
@@ -145,7 +145,9 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     registerMessage.textContent = 'Неверный регистрационный код';
     return;
   }
-  if (localStorage.getItem('user_' + username)) {
+
+  let players = JSON.parse(localStorage.getItem('players')) || [];
+  if (players.find(p => p.nickname === username)) {
     registerMessage.textContent = 'Пользователь с таким никнеймом уже существует';
     return;
   }
@@ -165,6 +167,9 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     openedCases: [],
     mainPrize: null
   };
+
+  players.push(userData);
+  localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('user_' + username, JSON.stringify(userData));
 
   const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
@@ -205,6 +210,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
   }, 1500);
 });
 
+// Вход
 document.getElementById('loginForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
   const username = document.getElementById('loginUsername').value.trim();
@@ -258,6 +264,7 @@ document.getElementById('getTaskForm')?.addEventListener('submit', async (e) => 
   if (!player) {
     player = JSON.parse(localStorage.getItem('currentUser'));
     players.push(player);
+    localStorage.setItem('players', JSON.stringify(players));
   }
   player.activeTask = randomTask.task;
   player.taskId = randomTask.id;
@@ -266,6 +273,7 @@ document.getElementById('getTaskForm')?.addEventListener('submit', async (e) => 
   player.lastReportTime = null;
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
   trackEvent('generate_task', {
     nickname: nickname,
@@ -289,11 +297,13 @@ async function submitReport() {
   const discord = currentUser.discord;
   const task = currentUser.activeTask;
   const points = currentUser.taskPoints;
-  const proof = document.getElementById('reportProof').value;
+  const proof = document.getElementById('reportProof').value.trim();
 
-  const urlPattern = /^(https:\/\/(i\.imgur\.com|cdn\.discordapp\.com)\/.*\.(png|jpg|jpeg|mp4))$/;
+  // Обновлённое регулярное выражение
+  const urlPattern = /^(https?:\/\/(?:i\.imgur\.com|cdn\.discordapp\.com|media\.discordapp\.net)\/[\w\-\/]+\.(png|jpg|jpeg|mp4))$/i;
   if (!proof || !urlPattern.test(proof)) {
-    alert('Введите валидную ссылку на доказательство (Imgur или Discord, формат: png/jpg/jpeg/mp4)!');
+    console.log('Введённая ссылка:', proof);
+    alert('Введите валидную ссылку на доказательство (Imgur или Discord, формат: png/jpg/jpeg/mp4)! Примеры: https://i.imgur.com/xxx.png, https://cdn.discordapp.com/xxx.mp4');
     return;
   }
 
@@ -339,10 +349,16 @@ async function submitReport() {
   }
 
   let players = JSON.parse(localStorage.getItem('players')) || [];
-  const player = players.find(p => p.nickname === nickname) || currentUser;
+  let player = players.find(p => p.nickname === nickname);
+  if (!player) {
+    player = currentUser;
+    players.push(player);
+    localStorage.setItem('players', JSON.stringify(players));
+  }
   player.lastReportTime = new Date().toISOString();
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
   trackEvent('submit_report', {
     nickname: nickname,
@@ -353,6 +369,7 @@ async function submitReport() {
   alert('Отчёт отправлен на проверку!');
   document.getElementById('reportProof').value = '';
   updateNextTaskTimer();
+  updateAdminPanel();
 }
 
 // Логика кейсов
@@ -379,7 +396,12 @@ async function openCase(casePoints) {
   }
 
   let players = JSON.parse(localStorage.getItem('players')) || [];
-  let player = players.find(p => p.nickname === currentUser.nickname) || currentUser;
+  let player = players.find(p => p.nickname === currentUser.nickname);
+  if (!player) {
+    player = currentUser;
+    players.push(player);
+    localStorage.setItem('players', JSON.stringify(players));
+  }
   if (player.openedCases.includes(casePoints)) {
     alert('Этот кейс уже открыт!');
     return;
@@ -398,6 +420,7 @@ async function openCase(casePoints) {
 
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + player.nickname, JSON.stringify(player));
 
   const caseElement = document.getElementById(`case_${casePoints}`);
   const spinner = document.createElement('div');
@@ -472,7 +495,7 @@ function updateCasesModal() {
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
   if (!currentUser) return;
 
-  const currentPoints = currentUser.points;
+  const currentPoints = currentUser.points || 0; // Исправление: 0 вместо undefined
   document.getElementById('currentPoints').textContent = `Ваши очки: ${currentPoints}`;
 
   const casesList = document.getElementById('casesList');
@@ -506,11 +529,13 @@ function updateCasesModal() {
 function updateAdminPanel() {
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
   if (!currentUser || !currentUser.isAdmin) {
+    console.log('Админ-панель скрыта: пользователь не админ или не авторизован', currentUser);
     document.getElementById('adminPanel')?.classList.add('hidden');
     document.getElementById('adminPanelButton')?.classList.add('hidden');
     return;
   }
 
+  console.log('Админ-панель отображается: пользователь админ', currentUser);
   document.getElementById('adminPanel')?.classList.remove('hidden');
   document.getElementById('adminPanelButton')?.classList.remove('hidden');
 
@@ -538,7 +563,7 @@ function updateAdminPanel() {
     playersTable.innerHTML += `
       <tr>
         <td class="p-2">${player.nickname}</td>
-        <td class="p-2">${player.points}</td>
+        <td class="p-2">${player.points || 0}</td>
         <td class="p-2">
           <input type="number" id="points_${player.nickname}" placeholder="Новое кол-во очков" class="p-1 bg-gray-700 rounded">
           <button onclick="updatePoints('${player.nickname}')" class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded button-neon">Изменить</button>
@@ -560,10 +585,11 @@ async function approveReport(reportId, points, nickname) {
   if (!player) {
     player = JSON.parse(localStorage.getItem('currentUser'));
     players.push(player);
+    localStorage.setItem('players', JSON.stringify(players));
   }
-  const previousPoints = player.points;
-  player.points += points;
-  player.tasksCompleted += 1;
+  const previousPoints = player.points || 0;
+  player.points = (player.points || 0) + points;
+  player.tasksCompleted = (player.tasksCompleted || 0) + 1;
   player.activeTask = null;
   player.taskStartTime = null;
   player.taskId = null;
@@ -571,6 +597,7 @@ async function approveReport(reportId, points, nickname) {
   player.lastReportTime = new Date().toISOString();
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
   trackEvent('approve_report', {
     report_id: reportId,
@@ -609,11 +636,13 @@ async function updatePoints(nickname) {
   if (!player) {
     player = JSON.parse(localStorage.getItem('currentUser'));
     players.push(player);
+    localStorage.setItem('players', JSON.stringify(players));
   }
-  const previousPoints = player.points;
+  const previousPoints = player.points || 0;
   player.points = newPoints;
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
   trackEvent('update_points', {
     nickname: nickname,
@@ -629,25 +658,22 @@ async function updatePoints(nickname) {
 // Начисление дополнительных очков
 async function awardExtraPoints() {
   const type = document.getElementById('extraPointsType').value;
-  const nickname = document.getElementById('extraPointsNickname').value;
+  const nickname = document.getElementById('extraPointsNickname').value.trim();
   const points = parseInt(type.split('_')[0]);
   const typeName = type.split('_')[1] === 'judgement' ? 'Суд' : type.split('_')[1] === 'raid' ? 'Рейд' : 'Мат. благо';
 
   let players = JSON.parse(localStorage.getItem('players')) || [];
   let player = players.find(p => p.nickname === nickname);
   if (!player) {
-    player = JSON.parse(localStorage.getItem('currentUser'));
-    if (player.nickname !== nickname) {
-      alert('Игрок не найден!');
-      return;
-    }
-    players.push(player);
+    alert('Игрок не найден!');
+    return;
   }
 
-  const previousPoints = player.points;
-  player.points += points;
+  const previousPoints = player.points || 0;
+  player.points = (player.points || 0) + points;
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
   const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
   const embed = {
@@ -693,6 +719,7 @@ async function checkCasesAndPrize(nickname, points, addedPoints) {
   if (!player) {
     player = JSON.parse(localStorage.getItem('currentUser'));
     players.push(player);
+    localStorage.setItem('players', JSON.stringify(players));
   }
   const openedCases = player.openedCases || [];
   const newlyOpenedCases = [];
@@ -717,6 +744,7 @@ async function checkCasesAndPrize(nickname, points, addedPoints) {
   player.openedCases = openedCases;
   localStorage.setItem('players', JSON.stringify(players));
   localStorage.setItem('currentUser', JSON.stringify(player));
+  localStorage.setItem('user_' + nickname, JSON.stringify(player));
 
   const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL';
   if (addedPoints > 0 || newlyOpenedCases.length > 0) {
@@ -766,6 +794,7 @@ function deletePlayer(nickname) {
   let players = JSON.parse(localStorage.getItem('players')) || [];
   players = players.filter(p => p.nickname !== nickname);
   localStorage.setItem('players', JSON.stringify(players));
+  localStorage.removeItem('user_' + nickname);
 
   trackEvent('delete_player', { nickname: nickname });
   alert('Игрок удалён!');
@@ -777,15 +806,20 @@ function deletePlayer(nickname) {
 function updateLeaderboard() {
   const players = JSON.parse(localStorage.getItem('players')) || [];
   const leaderboard = document.getElementById('leaderboard');
+  if (!leaderboard) return;
   leaderboard.innerHTML = '';
-  players.sort((a, b) => b.points - a.points);
+  if (players.length === 0) {
+    leaderboard.innerHTML = '<tr><td colspan="4" class="p-2 text-center">Нет зарегистрированных участников</td></tr>';
+    return;
+  }
+  players.sort((a, b) => (b.points || 0) - (a.points || 0));
   players.forEach(player => {
-    const status = player.mainPrize ? `Победитель: ${player.mainPrize}` : player.points >= 150000 ? 'Победитель' : 'Активен';
+    const status = player.mainPrize ? `Победитель: ${player.mainPrize}` : (player.points || 0) >= 150000 ? 'Победитель' : 'Активен';
     leaderboard.innerHTML += `
       <tr>
         <td class="p-2">${player.nickname}</td>
-        <td class="p-2">${player.points}</td>
-        <td class="p-2">${player.tasksCompleted}</td>
+        <td class="p-2">${player.points || 0}</td>
+        <td class="p-2">${player.tasksCompleted || 0}</td>
         <td class="p-2">${status}</td>
       </tr>
     `;
@@ -793,16 +827,48 @@ function updateLeaderboard() {
 }
 
 // Инициализация
-const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-if (currentUser && window.location.pathname.includes('dashboard.html')) {
-  document.getElementById('userButtons')?.classList.remove('hidden');
-  if (currentUser.isAdmin) {
-    document.getElementById('adminPanelButton')?.classList.remove('hidden');
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (currentUser && window.location.pathname.includes('dashboard.html')) {
+    console.log('Инициализация dashboard, текущий пользователь:', currentUser);
+    document.getElementById('userButtons')?.classList.remove('hidden');
+    if (currentUser.isAdmin) {
+      console.log('Пользователь является админом, отображаем админ-панель');
+      document.getElementById('adminPanelButton')?.classList.remove('hidden');
+      document.getElementById('adminPanel')?.classList.remove('hidden');
+    }
+    updateTaskTimer();
+    updateNextTaskTimer();
+    updateAdminPanel();
+    updateLeaderboard();
+    updateCasesModal();
+  } else if (window.location.pathname.includes('dashboard.html')) {
+    console.log('Пользователь не авторизован, перенаправление на index.html');
+    window.location.href = 'index.html';
   }
-  updateTaskTimer();
-  updateNextTaskTimer();
-  updateAdminPanel();
-  updateLeaderboard();
-} else if (window.location.pathname.includes('dashboard.html')) {
-  window.location.href = 'index.html';
-}
+
+  // Переключение форм входа/регистрации
+  const toggleForms = document.getElementById('toggleForms');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const formTitle = document.getElementById('formTitle');
+  if (toggleForms) {
+    toggleForms.onclick = () => {
+      if (loginForm.style.display !== 'none') {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        formTitle.textContent = 'Регистрация';
+        toggleForms.textContent = 'Есть аккаунт? Войти';
+        document.getElementById('loginMessage').textContent = '';
+        document.getElementById('registerMessage').textContent = '';
+      } else {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        formTitle.textContent = 'Вход';
+        toggleForms.textContent = 'Нет аккаунта? Зарегистрироваться';
+        document.getElementById('loginMessage').textContent = '';
+        document.getElementById('registerMessage').textContent = '';
+      }
+    };
+  }
+});

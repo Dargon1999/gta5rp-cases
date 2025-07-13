@@ -1,105 +1,138 @@
-/* Общие анимации */
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-@keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
+/* Общие стили */
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #1a1a1a, #2c3e50);
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
 }
 
-/* Неоновый стиль */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1, h2, h3 {
+  text-align: center;
+}
+
+/* Неоновый эффект для текста */
 .neon-text {
-  text-shadow: 0 0 5px #3b82f6, 0 0 10px #3b82f6, 0 0 20px #3b82f6;
-}
-.neon-box {
-  box-shadow: 0 0 10px #3b82f6, 0 0 20px #3b82f6;
-  border: 1px solid #3b82f6;
-}
-.button-neon {
-  transition: all 0.3s ease;
-  box-shadow: 0 0 10px #3b82f6;
-}
-.button-neon:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px #3b82f6, 0 0 30px #3b82f6;
-}
-.neon-table {
-  box-shadow: 0 0 10px #3b82f6;
-  border-collapse: collapse;
-}
-.neon-table th, .neon-table td {
-  border: 1px solid #4a5568;
-  transition: all 0.3s ease;
-}
-.neon-table tr:hover {
-  background: #2d3748;
-  box-shadow: 0 0 10px #3b82f6 inset;
+  text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 40px #00ccff;
 }
 
-/* Стили для кейсов */
-.case-card {
+/* Неоновый эффект для кнопок */
+.button-neon {
+  box-shadow: 0 0 5px #00ffcc, 0 0 10px #00ccff;
   transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid #3b82f6;
-  position: relative;
-  overflow: hidden;
 }
-.case-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px #3b82f6, 0 0 30px #3b82f6;
+
+.button-neon:hover {
+  box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ccff, 0 0 30px #00ccff;
 }
-.case-image {
+
+/* Таблицы */
+.neon-table {
+  border-collapse: collapse;
   width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
+  background: #1a1a1a;
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+}
+
+.neon-table th, .neon-table td {
+  border: 1px solid #00ffcc;
+  padding: 8px;
+  text-align: left;
+}
+
+.neon-table th {
+  background: #2c3e50;
+}
+
+/* Формы */
+form input, form select, form button {
+  border: 1px solid #00ffcc;
+  background: #2c3e50;
+  color: #ffffff;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+form button {
+  background: #00ccff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+form button:hover {
+  background: #00ffcc;
+  box-shadow: 0 0 10px #00ffcc;
+}
+
+/* Модальное окно */
+.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Кейсы */
+.case-card {
   transition: transform 0.3s ease;
 }
-.case-card:hover .case-image {
-  transform: scale(1.1);
+
+.case-card:hover {
+  transform: scale(1.05);
 }
 
-/* Анимация прокрутки кейсов */
+.case-image {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+}
+
 .case-spinner {
   display: flex;
   overflow: hidden;
   width: 100%;
-  height: 100px;
+  height: 50px;
   position: relative;
-  background: #1a202c;
-  border: 2px solid #3b82f6;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #3b82f6;
-}
-.case-spinner-item {
-  flex: 0 0 auto;
-  width: 100px;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #2d3748;
-  border: 1px solid #3b82f6;
-  margin-right: 5px;
-  font-size: 14px;
-  text-align: center;
-  color: #ffffff;
-  text-shadow: 0 0 5px #3b82f6;
-  transition: transform 0.1s ease;
-}
-.case-spinner-anim {
-  animation: spinCase 3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
-@keyframes spinCase {
-  0% { transform: translateX(0); }
-  80% { transform: translateX(-1500px); }
-  100% { transform: translateX(-1450px); }
 }
 
-/* Тематический фон для dashboard */
-body {
-  background: linear-gradient(to bottom, #1a202c, #2d3748);
+.case-spinner-item {
+  flex: 0 0 auto;
+  padding: 10px;
+  text-align: center;
+  background: #2c3e50;
+  border: 1px solid #00ffcc;
+  margin-right: 5px;
 }
-h1 {
-  text-shadow: 0 0 10px #3b82f6, 0 0 20px #3b82f6;
+
+.case-spinner-anim {
+  animation: spin 3s ease-in-out;
+}
+
+@keyframes spin {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-200%); }
+}
+
+/* Эффект появления */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

@@ -1,92 +1,60 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GTA 5 RP Blackberry — Кейсы</title>
-  <style>
-    /* Анимированный фон */
-    body { margin:0; background: linear-gradient(270deg,#1e664c,#3ebd91,#1e664c); background-size:600% 600%; animation:bgShift 20s ease infinite; font-family:'Segoe UI',sans-serif; color:#fff;}
-    @keyframes bgShift{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
-    #app{max-width:960px;margin:40px auto;padding:30px;background:rgba(0,0,0,0.6);border-radius:12px;}
-    header{text-align:center;font-size:2.4rem;font-weight:700;margin-bottom:20px;}
-    nav{text-align:center;margin-bottom:20px;}
-    nav button{margin:0 8px;padding:10px 16px;border:none;border-radius:8px;background:#12c56b;color:#fff;font-weight:700;cursor:pointer;transition:0.3s;}
-    nav button:hover{background:#0ea25d;transform:scale(1.05);}
-    #taskBox{padding:20px;background:rgba(0,0,0,0.5);border-radius:8px;min-height:120px;text-align:center;font-size:1.2rem;margin-bottom:20px;animation:fadeIn 0.7s;}
-    @keyframes fadeIn{0{opacity:0}100%{opacity:1}}
-    .cases{display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;}
-    .case{width:120px;height:120px;background:#0b3f2c;border-radius:8px;display:flex;justify-content:center;align-items:center;color:#fff;font-weight:700;cursor:pointer;position:relative;transition:transform 0.3s;}
-    .case:hover{transform:scale(1.05);}
-    table{width:100%;border-collapse:collapse;background:rgba(0,0,0,0.4);border-radius:8px;overflow:hidden;}
-    th,td{padding:12px;text-align:center;border-bottom:1px solid #12c56b;}
-    th{background:#12c56b;}
-    tbody tr:hover{background:rgba(18,197,107,0.2);}
-  </style>
-</head>
-<body>
-  <div id="app">
-    <header>GTA 5 RP Blackberry — Кейсы</header>
-    <nav>
-      <button id="btnGet">Получить задание</button>
-      <button id="btnOpenCase">Открыть кейс (1000 очков)</button>
-      <button id="btnLogout">Выйти</button>
-    </nav>
-    <div id="taskBox">Нажмите кнопку, чтобы получить задание.</div>
-    <div class="cases">
-      <div class="case" id="case1">Кейс 🎁</div>
-      <div class="case" id="case2">Кейс 🎁</div>
-      <div class="case" id="case3">Кейс 🎁</div>
-    </div>
-    <h3>Рейтинг участников</h3>
-    <table>
-      <thead><tr><th>Никнейм</th><th>Баллы</th><th>Задания</th><th>Статус</th></tr></thead>
-      <tbody id="rating"></tbody>
-    </table>
-  </div>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GTA5 RP Админ-панель</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
   <script>
-    const DISCORD_WEBHOOK='https://discord.com/api/webhooks/...';
-    const TASKS=[{text:"Обыск зеков 30",points:30},{text:"Отстоять КПП 2ч",points:120}/*…*/];
-    let current= sessionStorage.getItem('currentUser');
-    if(!current){location.href='index.html'; return;}
-    let users=JSON.parse(localStorage.getItem('users')||'{}');
-    let stats=JSON.parse(localStorage.getItem('stats')||'{}');
-    if(!stats[current]) stats[current]={points:0,count:0,status:'активен'};
-    localStorage.setItem('stats',JSON.stringify(stats));
-    document.getElementById('btnLogout').onclick=()=>{
-      sessionStorage.removeItem('currentUser');
-      location.href='index.html';
-    };
-    function renderRating(){
-      const tbody=document.getElementById('rating');
-      tbody.innerHTML='';
-      Object.entries(stats).sort((a,b)=>b[1].points-a[1].points).forEach(([u,d])=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${u}</td><td>${d.points}</td><td>${d.count}</td><td>${d.status}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    async function sendDiscord(name,pts){
-      await fetch(DISCORD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:`Игрок **${name}** заработал **${pts}** очков`})});
-    }
-    document.getElementById('btnGet').onclick= async ()=>{
-      const t=TASKS[Math.floor(Math.random()*TASKS.length)];
-      document.getElementById('taskBox').textContent=`Задание: ${t.text} (+${t.points} очков)`;
-      stats[current].points+=t.points;
-      stats[current].count+=1;
-      localStorage.setItem('stats',JSON.stringify(stats));
-      renderRating(); await sendDiscord(current,t.points);
-    };
-    document.getElementById('btnOpenCase').onclick=()=>{
-      if(stats[current].points<1000){alert('Недостаточно очков'); return;}
-      stats[current].points-=1000;
-      stats[current].count+=1;
-      stats[current].status='кейс открыт';
-      localStorage.setItem('stats',JSON.stringify(stats));
-      renderRating();
-      document.getElementById('taskBox').textContent='Вы открыли кейс 🎉 Поздравляем!';
-    };
-    renderRating();
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXX');
   </script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <section class="container mx-auto p-4 fade-in">
+    <h1 class="text-4xl font-bold text-center mb-6">Админ-панель</h1>
+    <a href="index.html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block button-hover">На главную</a>
+    <div id="adminPanel" class="fade-in">
+      <h2 class="text-2xl mb-4">Отчёты</h2>
+      <table class="w-full text-left mb-6">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="p-2">Ник</th>
+            <th class="p-2">Задание</th>
+            <th class="p-2">Доказательство</th>
+            <th class="p-2">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="adminReports"></tbody>
+      </table>
+      <h2 class="text-2xl mb-4">Управление игроками</h2>
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="p-2">Ник</th>
+            <th class="p-2">Очки</th>
+            <th class="p-2">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="adminPlayers"></tbody>
+      </table>
+      <h2 class="text-2xl mt-6 mb-4">Дополнительные очки</h2>
+      <div class="mb-4">
+        <select id="extraPointsType" class="p-2 bg-gray-700 rounded mr-2">
+          <option value="1000_judgement">Суд (1000 очков)</option>
+          <option value="500_raid">Рейд (500 очков)</option>
+          <option value="1000_material">Мат. благо (1000 очков)</option>
+        </select>
+        <input type="text" id="extraPointsNickname" placeholder="Никнейм игрока" class="p-2 bg-gray-700 rounded mr-2">
+        <button onclick="awardExtraPoints()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-hover">Начислить</button>
+      </div>
+    </div>
+  </section>
+  <script src="scripts.js"></script>
 </body>
 </html>

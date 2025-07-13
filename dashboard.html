@@ -18,10 +18,11 @@
   <header class="bg-gray-800 p-4 text-center">
     <h1 class="text-3xl font-bold neon-text">GTA5RP Cases</h1>
     <div id="userButtons" class="hidden mt-4 flex justify-center space-x-4">
-      <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded button-neon">Выйти</button>
-      <button onclick="showTaskForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded button-neon">Взять задание</button>
-      <button onclick="showCasesModal()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Кейсы</button>
-      <button id="adminPanelButton" onclick="document.getElementById('adminPanel').classList.toggle('hidden')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded button-neon hidden">Админ-панель</button>
+      <button onclick="logout()" class="neon-button">Выйти</button>
+      <button onclick="showTaskForm()" class="neon-button">Взять задание</button>
+      <button onclick="showCasesModal()" class="neon-button">Кейсы</button>
+      <button onclick="showOtherCasesModal()" class="neon-button">Другие кейсы</button>
+      <button id="adminPanelButton" onclick="document.getElementById('adminPanel').classList.toggle('hidden')" class="neon-button hidden">Админ-панель</button>
     </div>
   </header>
 
@@ -33,7 +34,7 @@
       <p id="taskTimer" class="text-lg"></p>
       <div class="mt-4">
         <input type="text" id="reportProof" placeholder="Ссылка на доказательство (Imgur или Discord)" class="p-2 bg-gray-700 rounded w-full mb-2">
-        <button onclick="submitReport()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Отправить отчёт</button>
+        <button onclick="submitReport()" class="neon-button">Отправить отчёт</button>
       </div>
     </section>
 
@@ -90,13 +91,13 @@
           <option value="1000_material">Мат. благо (1000 очков)</option>
         </select>
         <input type="text" id="extraPointsNickname" placeholder="Никнейм игрока" class="p-2 bg-gray-700 rounded mr-2">
-        <button onclick="awardExtraPoints()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Начислить</button>
+        <button onclick="awardExtraPoints()" class="neon-button">Начислить</button>
       </div>
-      <h3 class="text-xl mb-4 neon-text">Управление заданиями</h3>
+      <h3 class="text-xl mt-6 mb-4 neon-text">Управление заданиями</h3>
       <div class="mb-4">
         <input type="text" id="newTaskName" placeholder="Название задания" class="p-2 bg-gray-700 rounded mr-2">
         <input type="number" id="newTaskPoints" placeholder="Очки" class="p-2 bg-gray-700 rounded mr-2">
-        <button onclick="addTask()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded button-neon">Добавить задание</button>
+        <button onclick="addTask()" class="neon-button">Добавить задание</button>
       </div>
       <table class="w-full text-left neon-table">
         <thead>
@@ -109,6 +110,22 @@
         </thead>
         <tbody id="adminTasks"></tbody>
       </table>
+      <h3 class="text-xl mt-6 mb-4 neon-text">Настройка кейсов</h3>
+      <div class="mb-4">
+        <select id="caseConfigSelect" class="p-2 bg-gray-700 rounded mr-2">
+          <option value="30000">Кейс Расходников (30k)</option>
+          <option value="50000">Денежный кейс (50k)</option>
+          <option value="60000">Кейс Расходников (60k)</option>
+          <option value="90000">Кейс Расходников (90k)</option>
+          <option value="100000">Денежный кейс (100k)</option>
+          <option value="120000">Кейс Расходников (120k)</option>
+          <option value="150000">Главный приз (150k)</option>
+        </select>
+        <input type="number" id="caseProbability" placeholder="Вероятность (%)" min="0" max="100" class="p-2 bg-gray-700 rounded mr-2">
+        <input type="text" id="casePrize" placeholder="Приз" class="p-2 bg-gray-700 rounded mr-2">
+        <button onclick="configureCase()" class="neon-button">Сохранить настройки</button>
+      </div>
+      <p id="caseConfigMessage" class="text-sm mt-2"></p>
     </section>
 
     <!-- Модальное окно кейсов -->
@@ -118,7 +135,18 @@
         <p id="currentPoints" class="mb-4"></p>
         <div id="casesList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
         <p id="mainPrize" class="mt-4 text-lg hidden"></p>
-        <button onclick="closeCasesModal()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4 button-neon">Закрыть</button>
+        <button onclick="closeCasesModal()" class="neon-button mt-4">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Модальное окно других кейсов -->
+    <div id="otherCasesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-gray-800 p-6 rounded-lg max-w-4xl w-full">
+        <h2 class="text-2xl mb-4 neon-text">Другие кейсы</h2>
+        <p id="currentPointsOther" class="mb-4"></p>
+        <div id="otherCasesList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        <p id="mainPrizeOther" class="mt-4 text-lg hidden"></p>
+        <button onclick="closeOtherCasesModal()" class="neon-button mt-4">Закрыть</button>
       </div>
     </div>
 
@@ -129,9 +157,9 @@
         <form id="getTaskForm">
           <input type="text" id="nickname" placeholder="Никнейм" class="p-2 bg-gray-700 rounded w-full mb-2" readonly>
           <input type="text" id="discord" placeholder="Discord" class="p-2 bg-gray-700 rounded w-full mb-2" readonly>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full button-neon">Получить задание</button>
+          <button type="submit" class="neon-button w-full">Получить задание</button>
         </form>
-        <button onclick="closeTaskForm()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full mt-2 button-neon">Закрыть</button>
+        <button onclick="closeTaskForm()" class="neon-button w-full mt-2">Закрыть</button>
       </div>
     </div>
   </main>

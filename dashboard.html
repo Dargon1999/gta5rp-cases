@@ -1,54 +1,141 @@
-<!-- Админ-панель -->
-<section id="adminPanel" class="container mx-auto p-4 fade-in hidden">
-  <h2 class="text-2xl mb-4 neon-text">Админ-панель</h2>
-  <h3 class="text-xl mb-4 neon-text">Отчёты</h3>
-  <table class="w-full text-left mb-6 neon-table">
-    <thead>
-      <tr class="bg-gray-800">
-        <th class="p-2">Ник</th>
-        <th class="p-2">Задание</th>
-        <th class="p-2">Доказательство</th>
-        <th class="p-2">Действия</th>
-      </tr>
-    </thead>
-    <tbody id="adminReports"></tbody>
-  </table>
-  <h3 class="text-xl mb-4 neon-text">Управление игроками</h3>
-  <table class="w-full text-left neon-table">
-    <thead>
-      <tr class="bg-gray-800">
-        <th class="p-2">Ник</th>
-        <th class="p-2">Очки</th>
-        <th class="p-2">Действия</th>
-      </tr>
-    </thead>
-    <tbody id="adminPlayers"></tbody>
-  </table>
-  <h3 class="text-xl mt-6 mb-4 neon-text">Дополнительные очки</h3>
-  <div class="mb-4">
-    <select id="extraPointsType" class="p-2 bg-gray-700 rounded mr-2">
-      <option value="1000_judgement">Суд (1000 очков)</option>
-      <option value="500_raid">Рейд (500 очков)</option>
-      <option value="1000_material">Мат. благо (1000 очков)</option>
-    </select>
-    <input type="text" id="extraPointsNickname" placeholder="Никнейм игрока" class="p-2 bg-gray-700 rounded mr-2">
-    <button onclick="awardExtraPoints()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Начислить</button>
-  </div>
-  <h3 class="text-xl mt-6 mb-4 neon-text">Управление заданиями</h3>
-  <div class="mb-4">
-    <input type="text" id="newTaskName" placeholder="Название задания" class="p-2 bg-gray-700 rounded mr-2">
-    <input type="number" id="newTaskPoints" placeholder="Очки" class="p-2 bg-gray-700 rounded mr-2">
-    <button onclick="addTask()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded button-neon">Добавить задание</button>
-  </div>
-  <table class="w-full text-left neon-table">
-    <thead>
-      <tr class="bg-gray-800">
-        <th class="p-2">ID</th>
-        <th class="p-2">Задание</th>
-        <th class="p-2">Очки</th>
-        <th class="p-2">Действия</th>
-      </tr>
-    </thead>
-    <tbody id="adminTasks"></tbody>
-  </table>
-</section>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Дашборд - GTA5RP Cases</title>
+  <link rel="stylesheet" href="/gta5rp-cases/styles.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXX');
+  </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <header class="bg-gray-800 p-4 text-center">
+    <h1 class="text-3xl font-bold neon-text">GTA5RP Cases</h1>
+    <div id="userButtons" class="hidden mt-4 flex justify-center space-x-4">
+      <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded button-neon">Выйти</button>
+      <button onclick="showTaskForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded button-neon">Взять задание</button>
+      <button onclick="showCasesModal()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Кейсы</button>
+      <button id="adminPanelButton" onclick="document.getElementById('adminPanel').classList.toggle('hidden')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded button-neon hidden">Админ-панель</button>
+    </div>
+  </header>
+
+  <main class="container mx-auto p-4">
+    <!-- Текущее задание -->
+    <section id="currentTask" class="mt-4 hidden">
+      <h2 class="text-2xl mb-4 neon-text">Текущее задание</h2>
+      <p id="taskText"></p>
+      <p id="taskTimer" class="text-lg"></p>
+      <div class="mt-4">
+        <input type="text" id="reportProof" placeholder="Ссылка на доказательство (Imgur или Discord)" class="p-2 bg-gray-700 rounded w-full mb-2">
+        <button onclick="submitReport()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Отправить отчёт</button>
+      </div>
+    </section>
+
+    <!-- Таймер до следующего задания -->
+    <section id="nextTaskTimer" class="mt-4 text-lg hidden"></section>
+
+    <!-- Рейтинг участников -->
+    <section class="mt-8">
+      <h2 class="text-2xl mb-4 neon-text">Рейтинг участников</h2>
+      <table class="w-full text-left neon-table">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="p-2">Ник</th>
+            <th class="p-2">Очки</th>
+            <th class="p-2">Заданий выполнено</th>
+            <th class="p-2">Статус</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard"></tbody>
+      </table>
+    </section>
+
+    <!-- Админ-панель -->
+    <section id="adminPanel" class="container mx-auto p-4 fade-in hidden">
+      <h2 class="text-2xl mb-4 neon-text">Админ-панель</h2>
+      <h3 class="text-xl mb-4 neon-text">Отчёты</h3>
+      <table class="w-full text-left mb-6 neon-table">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="p-2">Ник</th>
+            <th class="p-2">Задание</th>
+            <th class="p-2">Доказательство</th>
+            <th class="p-2">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="adminReports"></tbody>
+      </table>
+      <h3 class="text-xl mb-4 neon-text">Управление игроками</h3>
+      <table class="w-full text-left neon-table">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="p-2">Ник</th>
+            <th class="p-2">Очки</th>
+            <th class="p-2">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="adminPlayers"></tbody>
+      </table>
+      <h3 class="text-xl mt-6 mb-4 neon-text">Дополнительные очки</h3>
+      <div class="mb-4">
+        <select id="extraPointsType" class="p-2 bg-gray-700 rounded mr-2">
+          <option value="1000_judgement">Суд (1000 очков)</option>
+          <option value="500_raid">Рейд (500 очков)</option>
+          <option value="1000_material">Мат. благо (1000 очков)</option>
+        </select>
+        <input type="text" id="extraPointsNickname" placeholder="Никнейм игрока" class="p-2 bg-gray-700 rounded mr-2">
+        <button onclick="awardExtraPoints()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded button-neon">Начислить</button>
+      </div>
+      <h3 class="text-xl mt-6 mb-4 neon-text">Управление заданиями</h3>
+      <div class="mb-4">
+        <input type="text" id="newTaskName" placeholder="Название задания" class="p-2 bg-gray-700 rounded mr-2">
+        <input type="number" id="newTaskPoints" placeholder="Очки" class="p-2 bg-gray-700 rounded mr-2">
+        <button onclick="addTask()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded button-neon">Добавить задание</button>
+      </div>
+      <table class="w-full text-left neon-table">
+        <thead>
+          <tr class="bg-gray-800">
+            <th class="p-2">ID</th>
+            <th class="p-2">Задание</th>
+            <th class="p-2">Очки</th>
+            <th class="p-2">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="adminTasks"></tbody>
+      </table>
+    </section>
+
+    <!-- Модальное окно кейсов -->
+    <div id="casesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-gray-800 p-6 rounded-lg max-w-4xl w-full">
+        <h2 class="text-2xl mb-4 neon-text">Кейсы</h2>
+        <p id="currentPoints" class="mb-4"></p>
+        <div id="casesList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        <p id="mainPrize" class="mt-4 text-lg hidden"></p>
+        <button onclick="closeCasesModal()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4 button-neon">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Форма взятия задания -->
+    <div id="taskForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full">
+        <h2 class="text-2xl mb-4 neon-text">Взять задание</h2>
+        <form id="getTaskForm">
+          <input type="text" id="nickname" placeholder="Никнейм" class="p-2 bg-gray-700 rounded w-full mb-2" readonly>
+          <input type="text" id="discord" placeholder="Discord" class="p-2 bg-gray-700 rounded w-full mb-2" readonly>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full button-neon">Получить задание</button>
+        </form>
+        <button onclick="closeTaskForm()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full mt-2 button-neon">Закрыть</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/gta5rp-cases/scripts.js"></script>
+</body>
+</html>
